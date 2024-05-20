@@ -1,0 +1,15 @@
+webcams:
+  webcam1:
+    users: ['johndoe']
+    path: /path/to/webcam/images1
+    list_images_command:
+    list_archives_command:
+    clean_images_command:
+    clean_archives_command:
+  webcam2:
+    users: ['johndoe']
+    path: /path/to/webcam2/images
+    list_images_command:
+    list_archives_command:
+    clean_images_command:
+    clean_archives_command:

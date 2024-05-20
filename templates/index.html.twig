@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros.html.twig' as helper %}
+
+{% block body %}
+
+    <div class="row">
+
+        {% for webcam in webcams %}
+
+            <div class="col-md-6">
+                <div class="text-center">
+                    <a href="{{ path('live', {webcam: webcam.name}) }}">
+                        <img class="live img-responsive"
+                             data-src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value}) }}"
+                             src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value}) }}"
+                        />
+                        <div>{{ webcam.name }}</div>
+                    </a>
+                </div>
+            </div>
+
+        {% endfor %}
+
+    </div>
+
+{% endblock %}
+
+{% block script %}
+
+    {{ helper.webcam_js() }}
+
+{% endblock %}

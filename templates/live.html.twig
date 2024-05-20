@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros.html.twig' as helper %}
+
+{% block body %}
+
+    Live!
+
+{% endblock %}
+
+{% block script %}
+
+    {{ helper.camera_js() }}
+
+{% endblock %}

@@ -1,0 +1,24 @@
+{% macro camera_js() %}
+
+    <script type="text/javascript">
+
+        setInterval(function () {
+
+            var val = {{ constant('App\\Constants::SLIDER') }};
+
+            if ($('#slider').length) {
+                val = $('#slider').slider("option", "value");
+            }
+
+            if (val === {{ constant('App\\Constants::SLIDER') }}) {
+                $('.live').each(function () {
+                    var that = $(this);
+                    that.attr('src', (that.data('src') + '?tm=' + (Date.now() / 1000 | 0)));
+                });
+            }
+
+        }, 1000);
+
+    </script>
+
+{% endmacro %}
