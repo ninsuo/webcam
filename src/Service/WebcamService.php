@@ -38,6 +38,7 @@ class WebcamService
 
     public function last(Webcam $webcam, Size $size) : string
     {
+        // TODO
         return $this->error();
     }
 
