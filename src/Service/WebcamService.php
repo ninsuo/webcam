@@ -66,7 +66,7 @@ class WebcamService
         if (!is_readable($file)) {
             $this->logger->error('Cannot read file', ['file' => $file]);
 
-            return $this->error();
+            return $this->error($size);
         }
 
         $manager = new ImageManager(new Driver());
@@ -88,9 +88,9 @@ class WebcamService
         return $image->toJpeg()->toString();
     }
 
-    private function error() : string
+    private function error(Size $size) : string
     {
-        $img = imagecreate(Constants::DEFAULT_WIDTH, Constants::DEFAULT_HEIGHT);
+        $img = imagecreate($size->getWidth(), $size->getHeight());
         ob_start();
         imagejpeg($img);
 
@@ -108,7 +108,7 @@ class WebcamService
         $index = (int) round($n / Constants::SLIDER * count($images));
 
         if ($index < 0 || $index >= count($images)) {
-            return $this->error();
+            return $this->error($size);
         }
 
         $file = $images[$index];
@@ -116,7 +116,7 @@ class WebcamService
         if (!is_readable($file)) {
             $this->logger->error('Cannot read file', ['file' => $file]);
 
-            return $this->error();
+            return $this->error($size);
         }
 
         return $this->render($file, $size);
@@ -147,7 +147,7 @@ class WebcamService
     {
         return array_map(
             fn($filename) => new Archive($filename),
-            explode("\n", trim(shell_exec($webcam->getListArchivesCommand())))
+            array_filter(explode("\n", trim(shell_exec($webcam->getListArchivesCommand()))))
         );
     }
 }

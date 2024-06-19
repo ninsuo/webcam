@@ -14,5 +14,5 @@ class Constants
     // Default size and location of the timestamp
     const DEFAULT_TIME_SIZE = 36;
     const DEFAULT_TIME_X = 1260;
-    const DEFAULT_TIME_Y = 700;
+    const DEFAULT_TIME_Y = 60;
 }

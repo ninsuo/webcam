@@ -25,3 +25,4 @@
 ###< symfony/asset-mapper ###
 
 config.yaml
+config.yaml.prod

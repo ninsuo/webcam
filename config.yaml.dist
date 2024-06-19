@@ -1,19 +1,7 @@
 webcams:
   webcam1:
-    users: ['johndoe']
+    users: ['bruno']
     path: /path/to/webcam/images1
-    last_image_command: 'find {path}/ -type f -name "*.jpg" | sort | tac | head -n 1'
-    list_images_command: 'find {path}/ -type f -name "*.jpg" | sort'
-    list_archives_command: 'find {path}/ -type f -name "*.tar.gz"'
-    archive_command: 'find {path}/ -type f -name "*.jpg" -mtime +1 -exec tar -czf {path}/archive-$(date +%Y%m%d%H%M%S).tar.gz {} \;'
-    clean_images_command: 'find {path}/ -type f -name "*.jpg" -mtime +1 -exec rm -f {} \;'
-    clean_archives_command: 'find {path}/ -type f -name "*.tar.gz" -mtime +7 -exec rm -f {} \;'
   webcam2:
-    users: ['johndoe']
+    users: ['alice', 'bob']
     path: /path/to/webcam2/images
-    last_image_command: 'find {path}/ -type f -name "*.jpg" | sort | tac | head -n 1'
-    list_images_command: 'find {path}/ -type f -name "*.jpg" | sort'
-    list_archives_command: 'find {path}/ -type f -name "*.tar.gz"'
-    archive_command: 'find {path}/ -type f -name "*.jpg" -mtime +1 -exec tar -czf {path}/archive-$(date +%Y%m%d%H%M%S).tar.gz {} \;'
-    clean_images_command: 'find {path}/ -type f -name "*.jpg" -mtime +1 -exec rm -f {} \;'
-    clean_archives_command: 'find {path}/ -type f -name "*.tar.gz" -mtime +7 -exec rm -f {} \;'

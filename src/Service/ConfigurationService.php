@@ -22,10 +22,11 @@ class ConfigurationService
         $this->tokenStorage = $tokenStorage;
 
         $config = Yaml::parseFile(sprintf('%s/config.yaml', $dir));
+        $isCli = php_sapi_name() === 'cli';
 
         foreach ($config['webcams'] as $name => $array) {
             $object = Webcam::loadFromConfig($name, $array);
-            if (in_array($this->tokenStorage->getToken()?->getUserIdentifier(), $object->getUsers())) {
+            if ($isCli || in_array($this->tokenStorage->getToken()?->getUserIdentifier(), $object->getUsers())) {
                 $this->webcams[] = $object;
             }
         }
