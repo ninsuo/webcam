@@ -2,14 +2,42 @@
 
 {% import 'macros.html.twig' as helper %}
 
+{% block title %}{{ webcam.name }}'s live{% endblock %}
+
 {% block body %}
 
-    Live!
+    <div id="live">
+
+        <div class="text-center">
+            <img class="live img-fluid"
+                 data-src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}"
+                 src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}"
+            />
+            <div id="slider"></div>
+        </div>
+
+    </div>
 
 {% endblock %}
 
-{% block script %}
+{% block scripts %}
 
-    {{ helper.camera_js() }}
+    {{ helper.webcam_js() }}
+
+    <script type="text/javascript">
+        $('#slider').slider({
+            min: 0,
+            max: {{ constant('App\\Constants::SLIDER') }},
+            value: {{ constant('App\\Constants::SLIDER') }},
+            slide: function (event, ui) {
+                renderHistory(ui.value);
+            }
+        });
+
+        function renderHistory(value) {
+            $('.live').attr('src', '{{ path('history', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}?tm=' + (Date.now() / 1000 | 0) + '&val=' + value);
+        }
+
+    </script>
 
 {% endblock %}

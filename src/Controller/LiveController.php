@@ -16,6 +16,8 @@ class LiveController extends AbstractController
     #[Route('/live/{webcam}', name: 'live')]
     public function index(#[ValueResolver(WebcamValueResolver::class)] Webcam $webcam) : Response
     {
-        return $this->render('live.html.twig');
+        return $this->render('live.html.twig', [
+            'webcam' => $webcam,
+        ]);
     }
 }

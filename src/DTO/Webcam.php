@@ -7,6 +7,7 @@ final readonly class Webcam
     private string $name;
     private array $users;
     private string $path;
+    private string $lastImageCommand;
     private string $listImagesCommand;
     private string $listArchivesCommand;
     private string $cleanImagesCommand;
@@ -16,6 +17,7 @@ final readonly class Webcam
         string $name,
         array $users,
         string $path,
+        string $lastImageCommand,
         string $listImagesCommand,
         string $listArchivesCommand,
         string $cleanImagesCommand,
@@ -24,6 +26,7 @@ final readonly class Webcam
         $this->name = $name;
         $this->users = $users;
         $this->path = $path;
+        $this->lastImageCommand = $lastImageCommand;
         $this->listImagesCommand = $listImagesCommand;
         $this->listArchivesCommand = $listArchivesCommand;
         $this->cleanImagesCommand = $cleanImagesCommand;
@@ -36,6 +39,7 @@ final readonly class Webcam
             $name,
             $config['users'],
             $config['path'],
+            $config['last_image_command'],
             $config['list_images_command'],
             $config['list_archives_command'],
             $config['clean_images_command'],
@@ -58,23 +62,28 @@ final readonly class Webcam
         return $this->path;
     }
 
+    public function getLastImageCommand() : string
+    {
+        return str_replace('{path}', $this->path, $this->lastImageCommand);
+    }
+
     public function getListImagesCommand() : string
     {
-        return $this->listImagesCommand;
+        return str_replace('{path}', $this->path, $this->listImagesCommand);
     }
 
     public function getListArchivesCommand() : string
     {
-        return $this->listArchivesCommand;
+        return str_replace('{path}', $this->path, $this->listArchivesCommand);
     }
 
     public function getCleanImagesCommand() : string
     {
-        return $this->cleanImagesCommand;
+        return str_replace('{path}', $this->path, $this->cleanImagesCommand);
     }
 
     public function getCleanArchivesCommand() : string
     {
-        return $this->cleanArchivesCommand;
+        return str_replace('{path}', $this->path, $this->cleanArchivesCommand);
     }
 }
