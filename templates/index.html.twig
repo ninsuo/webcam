@@ -8,15 +8,17 @@
 
         {% for webcam in webcams %}
 
-            <div class="col-md-6">
-                <div class="text-center">
-                    <a href="{{ path('live', {webcam: webcam.name}) }}">
-                        <img class="live img-fluid"
-                             data-src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value}) }}"
-                             src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value}) }}"
-                        />
-                        <div>{{ webcam.name }}</div>
-                    </a>
+            <div class="col-md-6 text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <a href="{{ path('live', {webcam: webcam.name}) }}">
+                            <img class="live img-fluid"
+                                 data-src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value}) }}"
+                                 src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value}) }}"
+                            />
+                            <div>{{ webcam.name }}</div>
+                        </a>
+                    </div>
                 </div>
             </div>
 

@@ -8,12 +8,44 @@
 
     <div id="live">
 
-        <div class="text-center">
-            <img class="live img-fluid"
-                 data-src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}"
-                 src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}"
-            />
-            <div id="slider"></div>
+        <div class="card">
+            <div class="card-body">
+                <div class="text-center">
+                    <img class="live img-fluid"
+                         data-src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}"
+                         src="{{ path('last', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value}) }}"
+                    />
+                    <div id="slider"></div>
+                </div>
+            </div>
+        </div>
+
+        <br/>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Archives</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Size</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for archive in archives %}
+                        <tr>
+                            <td>
+                                <a href="{{ path('archive', {webcam: webcam.name, name: archive.name}) }}">{{ archive.name }}</a>
+                            </td>
+                            <td>{{ archive.size|formatBytes }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
     </div>

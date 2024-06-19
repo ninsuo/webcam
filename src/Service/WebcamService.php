@@ -3,6 +3,7 @@
 namespace App\Service;
 
 use App\Constants;
+use App\DTO\Archive;
 use App\DTO\Webcam;
 use App\Enum\Size;
 use Intervention\Image\Drivers\Gd\Driver;
@@ -10,6 +11,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Typography\FontFactory;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class WebcamService
 {
@@ -123,5 +125,29 @@ class WebcamService
     private function listImages(Webcam $webcam) : array
     {
         return explode("\n", trim(shell_exec($webcam->getListImagesCommand())));
+    }
+
+    public function getArchive(Webcam $webcam, string $name) : Archive
+    {
+        $archives = $this->listArchives($webcam);
+
+        foreach ($archives as $archive) {
+            if ($archive->getName() === $name) {
+                return $archive;
+            }
+        }
+
+        throw new NotFoundHttpException();
+    }
+
+    /**
+     * @return Archive[]
+     */
+    public function listArchives(Webcam $webcam) : array
+    {
+        return array_map(
+            fn($filename) => new Archive($filename),
+            explode("\n", trim(shell_exec($webcam->getListArchivesCommand())))
+        );
     }
 }
