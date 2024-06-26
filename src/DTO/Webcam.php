@@ -4,7 +4,7 @@ namespace App\DTO;
 
 final readonly class Webcam
 {
-    const LAST_IMAGE_COMMAND = 'find {path} -type f -name "*.jpg" | sort | tac | head -n 1';
+    const LAST_IMAGE_COMMAND = 'find {path} -type f -name "*.jpg" | sort | tac | head -n 2 | tail -n 1';
     const LIST_IMAGES_COMMAND = 'find {path} -type f -name "*.jpg" | sort';
     const LIST_ARCHIVES_COMMAND = 'find {path} -type f -name "*.tar.gz"';
 
