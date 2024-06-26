@@ -13,7 +13,7 @@ enum Size: string
     {
         return match ($this) {
             self::THUMBNAIL => Constants::DEFAULT_WIDTH / 3,
-            self::ORIGINAL => Constants::DEFAULT_WIDTH,
+            self::ORIGINAL => Constants::DEFAULT_WIDTH / 2,
         };
     }
 
@@ -21,7 +21,7 @@ enum Size: string
     {
         return match ($this) {
             self::THUMBNAIL => Constants::DEFAULT_HEIGHT / 3,
-            self::ORIGINAL => Constants::DEFAULT_HEIGHT,
+            self::ORIGINAL => Constants::DEFAULT_HEIGHT / 2,
         };
     }
 
@@ -29,7 +29,7 @@ enum Size: string
     {
         return match ($this) {
             self::THUMBNAIL => Constants::DEFAULT_TIME_X / 3,
-            self::ORIGINAL => Constants::DEFAULT_TIME_X,
+            self::ORIGINAL => Constants::DEFAULT_TIME_X / 2,
         };
     }
 
@@ -37,7 +37,7 @@ enum Size: string
     {
         return match ($this) {
             self::THUMBNAIL => Constants::DEFAULT_TIME_Y / 3,
-            self::ORIGINAL => Constants::DEFAULT_TIME_Y,
+            self::ORIGINAL => Constants::DEFAULT_TIME_Y / 2,
         };
     }
 
@@ -45,7 +45,7 @@ enum Size: string
     {
         return match ($this) {
             self::THUMBNAIL => Constants::DEFAULT_TIME_SIZE / 2,
-            self::ORIGINAL => Constants::DEFAULT_TIME_SIZE,
+            self::ORIGINAL => Constants::DEFAULT_TIME_SIZE / 1.5,
         };
     }
 }

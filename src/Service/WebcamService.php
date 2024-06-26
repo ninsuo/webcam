@@ -6,7 +6,7 @@ use App\Constants;
 use App\DTO\Archive;
 use App\DTO\Webcam;
 use App\Enum\Size;
-use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\Drivers\Imagick\Driver;
 use Intervention\Image\ImageManager;
 use Intervention\Image\Typography\FontFactory;
 use Psr\Log\LoggerInterface;

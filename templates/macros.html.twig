@@ -2,22 +2,25 @@
 
     <script type="text/javascript">
 
-        setInterval(function () {
+        function reloadImage($img) {
+            var newSrc = $img.attr('src') + '?' + new Date().getTime();
 
-            var val = {{ constant('App\\Constants::SLIDER') }};
+            // Create a new image object to preload the image
+            var newImg = new Image();
+            newImg.onload = function () {
+                $img.attr('src', newSrc);
 
-            if ($('#slider').length) {
-                val = $('#slider').slider("option", "value");
-            }
+                // Restart the reload process after 1 second
+                setTimeout(function () {
+                    reloadImage($img);
+                }, 500);
+            };
+            newImg.src = newSrc;
+        }
 
-            if (val === {{ constant('App\\Constants::SLIDER') }}) {
-                $('.live').each(function () {
-                    var that = $(this);
-                    that.attr('src', (that.data('src') + '?tm=' + (Date.now() / 1000 | 0)));
-                });
-            }
-
-        }, 2000);
+        $('.live').each(function () {
+            reloadImage($(this));
+        });
 
     </script>
 

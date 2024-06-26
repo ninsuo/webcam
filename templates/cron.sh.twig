@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Move old backups to a temporary folder
+mkdir /tmp/backup-{{ webcam.name }}
+mv {{ webcam.path }}/*.tar.gz /tmp/backup-{{ webcam.name }}/
+
+# Create a new backup of the images folder
+tar -czf "/tmp/backup-{webcam.name}/archive-{{ webcam.name }}-$(date +%Y-%m-%d).tar.gz" {{ webcam.path }}
+find {{ webcam.path }} -type f -name "*.jpg" -mmin +$((60*24)) -exec rm -f {} \;
+
+# Move back backups to the images folder
+mv /tmp/backup-{{ webcam.name }}/*.tar.gz {{ webcam.path }}/
+rmdir /tmp/backup-{{ webcam.name }}
+
+# Remove old backups and empty folders
+find {{ webcam.path }} -type f -name "*.tar.gz" -mmin +$((60*24*7)) -exec rm -f {} \;
+find {{ webcam.path }} -type d -empty -delete
