@@ -18,10 +18,18 @@ security:
     secured:
       pattern: ^/
       provider: webcams
-      http_basic: ~
       remember_me:
         secret: '%kernel.secret%'
         lifetime: 315360000
         always_remember_me: true
+      form_login:
+        login_path: app_login
+        check_path: app_login
+        enable_csrf: true
+        default_target_path: home
+      logout:
+        path: app_logout
+        target: app_login
   access_control:
+    - { path: ^/login, roles: PUBLIC_ACCESS }
     - { path: ^/, roles: ROLE_USER }
