@@ -5,7 +5,7 @@ mkdir /tmp/backup-{{ webcam.name }}
 mv {{ webcam.path }}/*.tar.gz /tmp/backup-{{ webcam.name }}/
 
 # Create a new backup of the images folder
-tar -czf "/tmp/backup-{webcam.name}/archive-{{ webcam.name }}-$(date +%Y-%m-%d).tar.gz" {{ webcam.path }}
+tar -czf "/tmp/backup-{{ webcam.name }}/archive-{{ webcam.name }}-$(date +%Y-%m-%d).tar.gz" {{ webcam.path }}
 find {{ webcam.path }} -type f -name "*.jpg" -mmin +$((60*24)) -exec rm -f {} \;
 
 # Move back backups to the images folder
