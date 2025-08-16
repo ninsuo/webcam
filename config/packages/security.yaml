@@ -11,6 +11,9 @@ security:
           john:
             password: '%env(JOHN_PASSWORD)%'
             roles: ROLE_USER
+          sandrine:
+            password: '%env(SANDRINE_PASSWORD)%'
+            roles: ROLE_USER
   firewalls:
     dev:
       pattern: ^/(_(profiler|wdt)|css|images|js)/
