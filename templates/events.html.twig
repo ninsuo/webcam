@@ -50,8 +50,9 @@
                                 <div class="col-md-4 mb-3">
                                     <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: frame}) }}" target="_blank">
                                         {# no src: frames of a closed passage must not be fetched;
-                                           the script below loads them when the passage is opened #}
-                                        <img class="img-fluid"
+                                           the script below loads them when the passage is opened,
+                                           and loading=lazy then defers offscreen ones until scrolled #}
+                                        <img class="img-fluid" loading="lazy"
                                              data-src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
                                         />
                                     </a>
