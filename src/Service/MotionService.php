@@ -19,6 +19,9 @@ class MotionService
     // seconds without motion after which the next event starts a new passage
     public const PASSAGE_GAP = 120;
 
+    // images modified less than this many seconds ago may still be uploading
+    public const FRESH_SECONDS = 10;
+
     private MotionAnalyzer $analyzer;
 
     public function __construct(MotionAnalyzer $analyzer)
@@ -41,8 +44,11 @@ class MotionService
                     continue;
                 }
 
-                $this->score($motionFile, $prev, $image);
-                $prev = $image;
+                if (filemtime($image) > time() - self::FRESH_SECONDS) {
+                    continue;
+                }
+
+                $prev = $this->score($motionFile, $prev, $image) ? $image : null;
                 $scored++;
             }
         }
@@ -60,12 +66,17 @@ class MotionService
     {
         $events = [];
 
+        $seen = [];
         foreach ($this->listMotionFiles($webcam) as $motionFile) {
             $folder = dirname($motionFile);
             foreach (explode("\n", trim(file_get_contents($motionFile))) as $line) {
                 $row = json_decode($line, true);
-                if ($row['event'] ?? false) {
-                    $row['file'] = $folder.'/'.$row['file'];
+                if (!is_array($row) || !($row['event'] ?? false)) {
+                    continue;
+                }
+                $row['file'] = $folder.'/'.$row['file'];
+                if (!isset($seen[$row['file']])) {
+                    $seen[$row['file']] = true;
                     $events[] = $row;
                 }
             }
@@ -111,17 +122,26 @@ class MotionService
         return $files;
     }
 
-    private function score(string $motionFile, ?string $prev, string $image) : void
+    /**
+     * Returns false when the image could not be analyzed (e.g. corrupt
+     * file); it is still recorded as a non-event so it is never retried.
+     */
+    private function score(string $motionFile, ?string $prev, string $image) : bool
     {
-        if (null === $prev) {
-            $changed = 0;
-            $density = 0.0;
-            $event = false;
-        } else {
-            $result = $this->analyzer->compare($prev, $image);
-            $changed = $result->getChangedPixels();
-            $density = $result->getDensity();
-            $event = $result->isEvent();
+        $changed = 0;
+        $density = 0.0;
+        $event = false;
+        $analyzed = true;
+
+        if (null !== $prev) {
+            try {
+                $result = $this->analyzer->compare($prev, $image);
+                $changed = $result->getChangedPixels();
+                $density = $result->getDensity();
+                $event = $result->isEvent();
+            } catch (\RuntimeException) {
+                $analyzed = false;
+            }
         }
 
         $line = json_encode([
@@ -132,7 +152,9 @@ class MotionService
             'event' => $event,
         ]);
 
-        file_put_contents($motionFile, $line."\n", FILE_APPEND);
+        file_put_contents($motionFile, $line."\n", FILE_APPEND | LOCK_EX);
+
+        return $analyzed;
     }
 
     /**

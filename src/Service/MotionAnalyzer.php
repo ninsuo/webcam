@@ -69,7 +69,11 @@ class MotionAnalyzer
 
     private function loadGrayscale(string $file) : \GdImage
     {
-        $source = imagecreatefromjpeg($file);
+        $source = @imagecreatefromjpeg($file);
+
+        if (false === $source) {
+            throw new \RuntimeException(sprintf('Cannot decode image "%s"', $file));
+        }
 
         $small = imagecreatetruecolor(self::WIDTH, self::HEIGHT);
         imagecopyresampled(

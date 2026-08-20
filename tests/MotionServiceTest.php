@@ -62,6 +62,51 @@ class MotionServiceTest extends TestCase
         $this->assertTrue($lines[2]['event']);
     }
 
+    public function testDetectSurvivesCorruptImages() : void
+    {
+        $this->addImage('20260819/images/img-001.jpg');
+        file_put_contents($this->dir.'/20260819/images/img-002.jpg', 'partial camera upload');
+        touch($this->dir.'/20260819/images/img-002.jpg', time() - 120);
+        $this->addImage('20260819/images/img-003.jpg', withBlob: true);
+
+        $count = $this->service()->detect($this->webcam());
+
+        $this->assertSame(3, $count);
+
+        $lines = $this->readJsonl('20260819/images/motion.jsonl');
+        $this->assertCount(3, $lines);
+        $this->assertFalse($lines[1]['event']);
+    }
+
+    public function testDetectDefersImagesStillBeingWritten() : void
+    {
+        $this->addImage('20260819/images/img-001.jpg');
+        $this->addImage('20260819/images/img-002.jpg', fresh: true);
+
+        $count = $this->service()->detect($this->webcam());
+
+        $this->assertSame(1, $count);
+
+        $lines = $this->readJsonl('20260819/images/motion.jsonl');
+        $this->assertCount(1, $lines);
+        $this->assertSame('img-001.jpg', $lines[0]['file']);
+    }
+
+    public function testPassagesIgnoreDuplicateAndCorruptJsonlLines() : void
+    {
+        file_put_contents(
+            $this->dir.'/20260819/images/motion.jsonl',
+            json_encode(['file' => 'img-001.jpg', 'time' => 1000, 'changed' => 50, 'density' => 0.2, 'event' => true])."\n"
+            .json_encode(['file' => 'img-001.jpg', 'time' => 1000, 'changed' => 50, 'density' => 0.2, 'event' => true])."\n"
+            ."{\"file\":\"img-0\n"
+        );
+
+        $passages = $this->service()->getPassages($this->webcam());
+
+        $this->assertCount(1, $passages);
+        $this->assertCount(1, $passages[0]->getFrames());
+    }
+
     public function testPassagesGroupEventFramesByTimeProximity() : void
     {
         $this->writeJsonl('20260819/images/motion.jsonl', [
@@ -118,7 +163,7 @@ class MotionServiceTest extends TestCase
         return new Webcam('test', ['alain'], $this->dir);
     }
 
-    private function addImage(string $relative, bool $withBlob = false) : void
+    private function addImage(string $relative, bool $withBlob = false, bool $fresh = false) : void
     {
         $img = imagecreatetruecolor(1280, 720);
         imagefilledrectangle($img, 0, 0, 1279, 719, imagecolorallocate($img, 220, 220, 220));
@@ -128,6 +173,11 @@ class MotionServiceTest extends TestCase
         }
 
         imagejpeg($img, $this->dir.'/'.$relative);
+
+        if (!$fresh) {
+            // images are normally older than the "may still be uploading" window
+            touch($this->dir.'/'.$relative, time() - 120);
+        }
     }
 
     private function readJsonl(string $relative) : array

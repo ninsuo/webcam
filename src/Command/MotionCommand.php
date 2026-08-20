@@ -27,12 +27,34 @@ class MotionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output) : int
     {
-        foreach ($this->webcamService->list() as $webcam) {
-            $scored = $this->motionService->detect($webcam);
+        // backfilling a full day takes minutes; the every-minute cron must
+        // not pile up concurrent runs racing on the same motion files
+        $lock = fopen(self::getLockFile(), 'c');
+        if (!flock($lock, LOCK_EX | LOCK_NB)) {
+            $output->writeln('already running, skipping');
 
-            $output->writeln(sprintf('%s: %d new image(s) scored', $webcam->getName(), $scored));
+            return Command::SUCCESS;
         }
 
+        foreach ($this->webcamService->list() as $webcam) {
+            try {
+                $scored = $this->motionService->detect($webcam);
+
+                $output->writeln(sprintf('%s: %d new image(s) scored', $webcam->getName(), $scored));
+            } catch (\Throwable $e) {
+                // one broken webcam must not block the others
+                $output->writeln(sprintf('%s: error (%s)', $webcam->getName(), $e->getMessage()));
+            }
+        }
+
+        flock($lock, LOCK_UN);
+        fclose($lock);
+
         return Command::SUCCESS;
+    }
+
+    public static function getLockFile() : string
+    {
+        return sys_get_temp_dir().'/app-motion.lock';
     }
 }
