@@ -57,7 +57,8 @@ class EventController extends AbstractController
         Request $request
     ) : Response {
         return new JpegResponse(
-            $this->webcamService->image($webcam, (string) $request->get('file'), $size)
+            $this->webcamService->image($webcam, (string) $request->get('file'), $size),
+            cacheable: true
         );
     }
 

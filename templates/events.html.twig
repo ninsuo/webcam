@@ -30,7 +30,7 @@
             </div>
             <div class="card-body text-center">
                 <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: passage.best}) }}" target="_blank">
-                    <img class="img-fluid"
+                    <img class="img-fluid" loading="lazy"
                          src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: passage.best}) }}"
                     />
                 </a>
@@ -49,8 +49,10 @@
                             {% for frame in passage.frames %}
                                 <div class="col-md-4 mb-3">
                                     <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: frame}) }}" target="_blank">
+                                        {# no src: frames of a closed passage must not be fetched;
+                                           the script below loads them when the passage is opened #}
                                         <img class="img-fluid"
-                                             src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
+                                             data-src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
                                         />
                                     </a>
                                 </div>
@@ -63,5 +65,20 @@
         </div>
 
     {% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+
+    <script type="text/javascript">
+        document.querySelectorAll('.collapse').forEach(function (collapse) {
+            collapse.addEventListener('show.bs.collapse', function () {
+                collapse.querySelectorAll('img[data-src]').forEach(function (img) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                });
+            });
+        });
+    </script>
 
 {% endblock %}
