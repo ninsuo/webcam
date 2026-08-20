@@ -71,7 +71,11 @@ class MotionService
         $seen = [];
         foreach ($this->listMotionFiles($webcam) as $motionFile) {
             $folder = dirname($motionFile);
-            foreach (explode("\n", trim(file_get_contents($motionFile))) as $line) {
+
+            // stream line by line: motion files can grow far beyond the
+            // memory limit, loading them whole crashes the events page
+            $handle = fopen($motionFile, 'r');
+            while (false !== ($line = fgets($handle))) {
                 $row = json_decode($line, true);
                 if (!is_array($row) || !($row['event'] ?? false)) {
                     continue;
@@ -82,6 +86,7 @@ class MotionService
                     $events[] = $row;
                 }
             }
+            fclose($handle);
         }
 
         usort($events, fn($a, $b) => $a['time'] <=> $b['time']);
