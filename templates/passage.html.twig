@@ -21,7 +21,7 @@
         <div class="card-body">
             <div class="row">
                 {% for frame in frames %}
-                    <div class="col-6 col-md-4 mb-3">
+                    <div class="col-12 col-md-4 mb-3">
                         <a href="{{ path('event_frame_view', {webcam: webcam.name, start: start, file: frame}) }}">
                             <img class="img-fluid" loading="lazy"
                                  src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
