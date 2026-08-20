@@ -35,17 +35,19 @@ class MotionService
 
         foreach ($this->listImagesByFolder($webcam) as $folder => $images) {
             $motionFile = $folder.'/'.self::MOTION_FILE;
-            $done = $this->listScoredImages($motionFile);
+            $watermark = $this->lastScoredImage($motionFile);
 
             $prev = null;
             foreach ($images as $image) {
-                if (isset($done[basename($image)])) {
+                if (null !== $watermark && basename($image) <= $watermark) {
                     $prev = $image;
                     continue;
                 }
 
                 if (filemtime($image) > time() - self::FRESH_SECONDS) {
-                    continue;
+                    // still uploading; later images are even fresher, and
+                    // scoring past a hole would corrupt the watermark
+                    break;
                 }
 
                 $prev = $this->score($motionFile, $prev, $image) ? $image : null;
@@ -183,22 +185,28 @@ class MotionService
     }
 
     /**
-     * @return array<string, true> basenames of images already scored
+     * Basename of the last scored image, read from the tail of the motion
+     * file: images are scored in filename order, so everything at or below
+     * it is already done.
      */
-    private function listScoredImages(string $motionFile) : array
+    private function lastScoredImage(string $motionFile) : ?string
     {
-        if (!is_readable($motionFile)) {
-            return [];
+        if (!is_readable($motionFile) || ($size = filesize($motionFile)) === 0) {
+            return null;
         }
 
-        $done = [];
-        foreach (explode("\n", trim(file_get_contents($motionFile))) as $line) {
-            $row = json_decode($line, true);
+        $handle = fopen($motionFile, 'r');
+        fseek($handle, -min($size, 8192), SEEK_END);
+        $lines = explode("\n", stream_get_contents($handle));
+        fclose($handle);
+
+        for ($i = count($lines) - 1; $i >= 0; $i--) {
+            $row = json_decode($lines[$i], true);
             if (isset($row['file'])) {
-                $done[$row['file']] = true;
+                return $row['file'];
             }
         }
 
-        return $done;
+        return null;
     }
 }

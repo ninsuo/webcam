@@ -92,6 +92,40 @@ class MotionServiceTest extends TestCase
         $this->assertSame('img-001.jpg', $lines[0]['file']);
     }
 
+    public function testDetectStopsAtFirstImageStillBeingWritten() : void
+    {
+        $this->addImage('20260819/images/img-001.jpg');
+        $this->addImage('20260819/images/img-002.jpg', fresh: true);
+        $this->addImage('20260819/images/img-003.jpg');
+
+        $count = $this->service()->detect($this->webcam());
+
+        // scanning stops at img-002: scoring img-003 now would break the
+        // "everything before the last scored image is done" watermark
+        $this->assertSame(1, $count);
+        $lines = $this->readJsonl('20260819/images/motion.jsonl');
+        $this->assertSame('img-001.jpg', $lines[0]['file']);
+    }
+
+    public function testDetectOnlyConsidersImagesAboveTheLastScoredOne() : void
+    {
+        $this->addImage('20260819/images/img-001.jpg');
+        $this->addImage('20260819/images/img-002.jpg');
+        $this->addImage('20260819/images/img-003.jpg');
+        $this->writeJsonl('20260819/images/motion.jsonl', [
+            ['file' => 'img-002.jpg', 'time' => 1000, 'changed' => 0, 'density' => 0.0, 'event' => false],
+        ]);
+
+        $count = $this->service()->detect($this->webcam());
+
+        // img-001 sorts below the watermark: never rescored, even though
+        // it has no jsonl line of its own
+        $this->assertSame(1, $count);
+        $lines = $this->readJsonl('20260819/images/motion.jsonl');
+        $this->assertCount(2, $lines);
+        $this->assertSame('img-003.jpg', $lines[1]['file']);
+    }
+
     public function testPassagesIgnoreDuplicateAndCorruptJsonlLines() : void
     {
         file_put_contents(
