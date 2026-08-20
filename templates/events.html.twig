@@ -26,60 +26,24 @@
                         &rarr; {{ passage.end|date('H:i:s') }}
                     {% endif %}
                 </h5>
-                <span class="badge bg-primary">{{ passage.frames|length }} image(s)</span>
+                <span class="badge bg-primary">{{ passage.count }} image(s)</span>
             </div>
             <div class="card-body text-center">
-                <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: passage.best}) }}" target="_blank">
+                <a href="{{ path('event_passage', {webcam: webcam.name, start: passage.start.timestamp}) }}">
                     <img class="img-fluid" loading="lazy"
                          src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: passage.best}) }}"
                     />
                 </a>
 
-                {% if passage.frames|length > 1 %}
-
-                    <div class="mt-3">
-                        <button class="btn btn-outline-secondary btn-sm" type="button"
-                                data-bs-toggle="collapse" data-bs-target="#passage-{{ loop.index }}">
-                            Show all images
-                        </button>
-                    </div>
-
-                    <div class="collapse mt-3" id="passage-{{ loop.index }}">
-                        <div class="row">
-                            {% for frame in passage.frames %}
-                                <div class="col-md-4 mb-3">
-                                    <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: frame}) }}" target="_blank">
-                                        {# no src: frames of a closed passage must not be fetched;
-                                           the script below loads them when the passage is opened,
-                                           and loading=lazy then defers offscreen ones until scrolled #}
-                                        <img class="img-fluid" loading="lazy"
-                                             data-src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
-                                        />
-                                    </a>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                {% endif %}
+                <div class="mt-3">
+                    <a class="btn btn-outline-secondary btn-sm"
+                       href="{{ path('event_passage', {webcam: webcam.name, start: passage.start.timestamp}) }}">
+                        View all {{ passage.count }} image(s)
+                    </a>
+                </div>
             </div>
         </div>
 
     {% endfor %}
-
-{% endblock %}
-
-{% block scripts %}
-
-    <script type="text/javascript">
-        document.querySelectorAll('.collapse').forEach(function (collapse) {
-            collapse.addEventListener('show.bs.collapse', function () {
-                collapse.querySelectorAll('img[data-src]').forEach(function (img) {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                });
-            });
-        });
-    </script>
 
 {% endblock %}

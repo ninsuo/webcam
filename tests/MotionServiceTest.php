@@ -165,6 +165,22 @@ class MotionServiceTest extends TestCase
         $this->assertStringEndsWith('img-005.jpg', $passages[1]->getBestFrame());
     }
 
+    public function testGetPassageFindsAPassageByItsStartTimestamp() : void
+    {
+        $this->writeJsonl('20260819/images/motion.jsonl', [
+            ['file' => 'img-001.jpg', 'time' => 1000, 'changed' => 50, 'density' => 0.2, 'event' => true],
+            ['file' => 'img-002.jpg', 'time' => 5000, 'changed' => 60, 'density' => 0.2, 'event' => true],
+        ]);
+
+        $service = $this->service();
+
+        $passage = $service->getPassage($this->webcam(), 5000);
+        $this->assertNotNull($passage);
+        $this->assertStringEndsWith('img-002.jpg', $passage->getBestFrame());
+
+        $this->assertNull($service->getPassage($this->webcam(), 4242));
+    }
+
     public function testPassageFramesCarryTheFullImagePath() : void
     {
         $this->writeJsonl('20260819/images/motion.jsonl', [

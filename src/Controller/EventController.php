@@ -15,10 +15,13 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Attribute\ValueResolver;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 class EventController extends AbstractController
 {
+    public const PER_PAGE = 24;
+
     private WebcamService $webcamService;
     private MotionService $motionService;
 
@@ -36,10 +39,7 @@ class EventController extends AbstractController
                 'start' => $passage->getStart(),
                 'end' => $passage->getEnd(),
                 'best' => $this->relative($webcam, $passage->getBestFrame()),
-                'frames' => array_map(
-                    fn($frame) => $this->relative($webcam, $frame['file']),
-                    $passage->getFrames()
-                ),
+                'count' => count($passage->getFrames()),
             ],
             array_reverse($this->motionService->getPassages($webcam))
         );
@@ -47,6 +47,57 @@ class EventController extends AbstractController
         return $this->render('events.html.twig', [
             'webcam' => $webcam,
             'passages' => $passages,
+        ]);
+    }
+
+    #[Route('/events/{webcam}/passage/{start}', name: 'event_passage', requirements: ['start' => '\d+'])]
+    public function passage(
+        #[ValueResolver(WebcamValueResolver::class)] Webcam $webcam,
+        int $start,
+        Request $request
+    ) : Response {
+        $passage = $this->motionService->getPassage($webcam, $start)
+            ?? throw new NotFoundHttpException('Passage not found');
+
+        $page = min(max((int) $request->get('page', 1), 1), $passage->countPages(self::PER_PAGE));
+
+        return $this->render('passage.html.twig', [
+            'webcam' => $webcam,
+            'start' => $start,
+            'passage' => $passage,
+            'page' => $page,
+            'pages' => $passage->countPages(self::PER_PAGE),
+            'frames' => array_map(
+                fn($frame) => $this->relative($webcam, $frame['file']),
+                $passage->getFramesPage($page, self::PER_PAGE)
+            ),
+        ]);
+    }
+
+    #[Route('/events/{webcam}/frame/{start}', name: 'event_frame_view', requirements: ['start' => '\d+'])]
+    public function frameView(
+        #[ValueResolver(WebcamValueResolver::class)] Webcam $webcam,
+        int $start,
+        Request $request
+    ) : Response {
+        $passage = $this->motionService->getPassage($webcam, $start)
+            ?? throw new NotFoundHttpException('Passage not found');
+
+        $file = $webcam->getPath().'/'.$request->get('file');
+        if (!$passage->hasFrame($file)) {
+            throw new NotFoundHttpException('Frame not found');
+        }
+
+        $prev = $passage->getPrevFrame($file);
+        $next = $passage->getNextFrame($file);
+
+        return $this->render('frame.html.twig', [
+            'webcam' => $webcam,
+            'start' => $start,
+            'file' => $this->relative($webcam, $file),
+            'page' => $passage->getFramePage($file, self::PER_PAGE),
+            'prev' => $prev ? $this->relative($webcam, $prev) : null,
+            'next' => $next ? $this->relative($webcam, $next) : null,
         ]);
     }
 

@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ webcam.name }}'s events{% endblock %}
+
+{% block body %}
+
+    <div class="mb-3">
+        <a href="{{ path('event_passage', {webcam: webcam.name, start: start, page: page}) }}">&laquo; back to images</a>
+    </div>
+
+    <div class="card">
+        <div class="card-body text-center">
+            <img class="img-fluid"
+                 src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: file}) }}"
+            />
+
+            <nav class="d-flex align-items-center justify-content-between mt-3">
+                {% if prev %}
+                    <a class="btn btn-outline-secondary"
+                       href="{{ path('event_frame_view', {webcam: webcam.name, start: start, file: prev}) }}">&laquo; previous</a>
+                {% else %}
+                    <span></span>
+                {% endif %}
+                {% if next %}
+                    <a class="btn btn-outline-secondary"
+                       href="{{ path('event_frame_view', {webcam: webcam.name, start: start, file: next}) }}">next &raquo;</a>
+                {% else %}
+                    <span></span>
+                {% endif %}
+            </nav>
+        </div>
+    </div>
+
+{% endblock %}

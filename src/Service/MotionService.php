@@ -102,6 +102,17 @@ class MotionService
         return $passages;
     }
 
+    public function getPassage(Webcam $webcam, int $start) : ?MotionPassage
+    {
+        foreach ($this->getPassages($webcam) as $passage) {
+            if ($passage->getStart()->getTimestamp() === $start) {
+                return $passage;
+            }
+        }
+
+        return null;
+    }
+
     /**
      * @return string[]
      */

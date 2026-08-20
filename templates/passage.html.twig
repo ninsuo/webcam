@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ webcam.name }}'s events{% endblock %}
+
+{% block body %}
+
+    <div class="mb-3">
+        <a href="{{ path('events', {webcam: webcam.name}) }}">&laquo; back to events</a>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">
+                {{ passage.start|date('d/m/Y H:i:s') }}
+                {% if passage.end != passage.start %}
+                    &rarr; {{ passage.end|date('H:i:s') }}
+                {% endif %}
+            </h5>
+            <span class="badge bg-primary">{{ passage.frames|length }} image(s)</span>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                {% for frame in frames %}
+                    <div class="col-6 col-md-4 mb-3">
+                        <a href="{{ path('event_frame_view', {webcam: webcam.name, start: start, file: frame}) }}">
+                            <img class="img-fluid" loading="lazy"
+                                 src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
+                            />
+                        </a>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if pages > 1 %}
+                <nav class="d-flex align-items-center justify-content-center gap-3 mt-2">
+                    {% if page > 1 %}
+                        <a class="btn btn-outline-secondary"
+                           href="{{ path('event_passage', {webcam: webcam.name, start: start, page: page - 1}) }}">&laquo; previous</a>
+                    {% endif %}
+                    <span class="text-muted">page {{ page }} / {{ pages }}</span>
+                    {% if page < pages %}
+                        <a class="btn btn-outline-secondary"
+                           href="{{ path('event_passage', {webcam: webcam.name, start: start, page: page + 1}) }}">next &raquo;</a>
+                    {% endif %}
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
