@@ -1,0 +1,182 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Service;
+
+use App\DTO\MotionPassage;
+use App\DTO\Webcam;
+
+/**
+ * Scores webcam images for motion and stores the results in a
+ * motion.jsonl file next to the images, one line per image. Files
+ * already scored are skipped, so detect() can run from a frequent cron.
+ */
+class MotionService
+{
+    public const MOTION_FILE = 'motion.jsonl';
+
+    // seconds without motion after which the next event starts a new passage
+    public const PASSAGE_GAP = 120;
+
+    private MotionAnalyzer $analyzer;
+
+    public function __construct(MotionAnalyzer $analyzer)
+    {
+        $this->analyzer = $analyzer;
+    }
+
+    public function detect(Webcam $webcam) : int
+    {
+        $scored = 0;
+
+        foreach ($this->listImagesByFolder($webcam) as $folder => $images) {
+            $motionFile = $folder.'/'.self::MOTION_FILE;
+            $done = $this->listScoredImages($motionFile);
+
+            $prev = null;
+            foreach ($images as $image) {
+                if (isset($done[basename($image)])) {
+                    $prev = $image;
+                    continue;
+                }
+
+                $this->score($motionFile, $prev, $image);
+                $prev = $image;
+                $scored++;
+            }
+        }
+
+        return $scored;
+    }
+
+    /**
+     * Groups event frames into passages: consecutive sightings less than
+     * two minutes apart belong to the same passage (one cat walk).
+     *
+     * @return MotionPassage[]
+     */
+    public function getPassages(Webcam $webcam) : array
+    {
+        $events = [];
+
+        foreach ($this->listMotionFiles($webcam) as $motionFile) {
+            $folder = dirname($motionFile);
+            foreach (explode("\n", trim(file_get_contents($motionFile))) as $line) {
+                $row = json_decode($line, true);
+                if ($row['event'] ?? false) {
+                    $row['file'] = $folder.'/'.$row['file'];
+                    $events[] = $row;
+                }
+            }
+        }
+
+        usort($events, fn($a, $b) => $a['time'] <=> $b['time']);
+
+        $passages = [];
+        $frames = [];
+        foreach ($events as $event) {
+            if ($frames && $event['time'] - $frames[count($frames) - 1]['time'] > self::PASSAGE_GAP) {
+                $passages[] = new MotionPassage($frames);
+                $frames = [];
+            }
+            $frames[] = $event;
+        }
+        if ($frames) {
+            $passages[] = new MotionPassage($frames);
+        }
+
+        return $passages;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function listMotionFiles(Webcam $webcam) : array
+    {
+        $files = [];
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($webcam->getPath(), \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile() && $file->getFilename() === self::MOTION_FILE) {
+                $files[] = $file->getPathname();
+            }
+        }
+
+        sort($files);
+
+        return $files;
+    }
+
+    private function score(string $motionFile, ?string $prev, string $image) : void
+    {
+        if (null === $prev) {
+            $changed = 0;
+            $density = 0.0;
+            $event = false;
+        } else {
+            $result = $this->analyzer->compare($prev, $image);
+            $changed = $result->getChangedPixels();
+            $density = $result->getDensity();
+            $event = $result->isEvent();
+        }
+
+        $line = json_encode([
+            'file' => basename($image),
+            'time' => filemtime($image),
+            'changed' => $changed,
+            'density' => round($density, 4),
+            'event' => $event,
+        ]);
+
+        file_put_contents($motionFile, $line."\n", FILE_APPEND);
+    }
+
+    /**
+     * @return array<string, array<string>> sorted images grouped by folder
+     */
+    private function listImagesByFolder(Webcam $webcam) : array
+    {
+        $folders = [];
+
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($webcam->getPath(), \FilesystemIterator::SKIP_DOTS)
+        );
+
+        foreach ($iterator as $file) {
+            if ($file->isFile() && strtolower($file->getExtension()) === 'jpg') {
+                $folders[$file->getPath()][] = $file->getPathname();
+            }
+        }
+
+        ksort($folders);
+        foreach ($folders as &$images) {
+            sort($images);
+        }
+
+        return $folders;
+    }
+
+    /**
+     * @return array<string, true> basenames of images already scored
+     */
+    private function listScoredImages(string $motionFile) : array
+    {
+        if (!is_readable($motionFile)) {
+            return [];
+        }
+
+        $done = [];
+        foreach (explode("\n", trim(file_get_contents($motionFile))) as $line) {
+            $row = json_decode($line, true);
+            if (isset($row['file'])) {
+                $done[$row['file']] = true;
+            }
+        }
+
+        return $done;
+    }
+}

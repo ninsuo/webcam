@@ -39,6 +39,24 @@ final readonly class Webcam
         return $this->path;
     }
 
+    /**
+     * Resolves a user-provided relative image path into an absolute one,
+     * refusing anything that escapes the webcam folder or is not a jpg.
+     */
+    public function resolveImage(string $relative) : ?string
+    {
+        $file = realpath($this->path.'/'.$relative);
+
+        if (false === $file
+            || !str_starts_with($file, realpath($this->path).'/')
+            || !str_ends_with(strtolower($file), '.jpg')
+            || !is_file($file)) {
+            return null;
+        }
+
+        return $file;
+    }
+
     public function getLastImageCommand() : string
     {
         return str_replace('{path}', $this->path, self::LAST_IMAGE_COMMAND);

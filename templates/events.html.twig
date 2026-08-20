@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ webcam.name }}'s events{% endblock %}
+
+{% block body %}
+
+    <div class="mb-3">
+        <a href="{{ path('live', {webcam: webcam.name}) }}">&laquo; back to live</a>
+    </div>
+
+    {% if passages is empty %}
+
+        <div class="alert alert-secondary">
+            No motion detected yet.
+        </div>
+
+    {% endif %}
+
+    {% for passage in passages %}
+
+        <div class="card mb-4">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h5 class="mb-0">
+                    {{ passage.start|date('d/m/Y H:i:s') }}
+                    {% if passage.end != passage.start %}
+                        &rarr; {{ passage.end|date('H:i:s') }}
+                    {% endif %}
+                </h5>
+                <span class="badge bg-primary">{{ passage.frames|length }} image(s)</span>
+            </div>
+            <div class="card-body text-center">
+                <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: passage.best}) }}" target="_blank">
+                    <img class="img-fluid"
+                         src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: passage.best}) }}"
+                    />
+                </a>
+
+                {% if passage.frames|length > 1 %}
+
+                    <div class="mt-3">
+                        <button class="btn btn-outline-secondary btn-sm" type="button"
+                                data-bs-toggle="collapse" data-bs-target="#passage-{{ loop.index }}">
+                            Show all images
+                        </button>
+                    </div>
+
+                    <div class="collapse mt-3" id="passage-{{ loop.index }}">
+                        <div class="row">
+                            {% for frame in passage.frames %}
+                                <div class="col-md-4 mb-3">
+                                    <a href="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::ORIGINAL').value, file: frame}) }}" target="_blank">
+                                        <img class="img-fluid"
+                                             src="{{ path('event_frame', {webcam: webcam.name, size: constant('App\\Enum\\Size::THUMBNAIL').value, file: frame}) }}"
+                                        />
+                                    </a>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                {% endif %}
+            </div>
+        </div>
+
+    {% endfor %}
+
+{% endblock %}

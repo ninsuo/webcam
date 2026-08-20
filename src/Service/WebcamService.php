@@ -58,6 +58,17 @@ class WebcamService
         return $this->render($file, $size);
     }
 
+    public function image(Webcam $webcam, string $relative, Size $size) : string
+    {
+        $file = $webcam->resolveImage($relative);
+
+        if (null === $file) {
+            throw new NotFoundHttpException('Image not found');
+        }
+
+        return $this->render($file, $size);
+    }
+
     private function render(string $file, Size $size) : string
     {
         $date = new \DateTime();

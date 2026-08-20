@@ -7,6 +7,7 @@ mv {{ webcam.path }}/*.tar.gz /tmp/backup-{{ webcam.name }}/
 # Create a new backup of the images folder
 tar -czf "/tmp/backup-{{ webcam.name }}/archive-{{ webcam.name }}-$(date +%Y-%m-%d).tar.gz" {{ webcam.path }}
 find {{ webcam.path }} -type f -name "*.jpg" -exec rm -f {} \;
+find {{ webcam.path }} -type f -name "motion.jsonl" -exec rm -f {} \;
 
 # Move back backups to the images folder
 mv /tmp/backup-{{ webcam.name }}/*.tar.gz {{ webcam.path }}/
